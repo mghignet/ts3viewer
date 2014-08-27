@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-  compileSdkVersion 14
+  compileSdkVersion 19
   buildToolsVersion "20.0.0"
 
   defaultConfig {
     applicationId "com.mghignet.android.ts3viewer"
     minSdkVersion 14
-    targetSdkVersion 17
+    targetSdkVersion 19
     compileOptions {
       sourceCompatibility JavaVersion.VERSION_1_5
       targetCompatibility JavaVersion.VERSION_1_5
@@ -16,7 +16,7 @@ android {
 
   buildTypes {
     release {
-      runProguard false
+      runProguard true
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
   }

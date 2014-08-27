@@ -1,0 +1,2 @@
+#Needed for running proguard while using Picasso library
+-dontwarn com.squareup.okhttp.**
