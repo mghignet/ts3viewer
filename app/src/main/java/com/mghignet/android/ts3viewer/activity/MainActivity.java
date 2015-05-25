@@ -40,8 +40,8 @@ import java.util.Map;
 public class MainActivity extends Activity {
 
   public static final String TS3VIEWER_ADDRESS = "http://www.tsviewer.com/ts3viewer.php?ID=";
-  public static final String TS3VIEWER_ID = "1017077"; //Not used anymore, using preferences instead
-  public static final String TS3VIEWER_SERVER_ID_PATTERN = "ts3_h_s[0-9]+$";
+  public static final String TS3VIEWER_SERVER_PREFIX_PATTERN = "^ts3v_[0-9]+_";
+  public static final String TS3VIEWER_SERVER_ID_PATTERN = TS3VIEWER_SERVER_PREFIX_PATTERN + "ts3_h_s[0-9]+$";
   public static final String TS3VIEWER_CHANNEL_ID_ENDPATTERN = "_ch[0-9]+$"; //This pattern is appended to the server pattern
   public static final String TS3VIEWER_CLIENT_ID_ENDPATTERN = "_cl[0-9]+$"; //This pattern is appended to the server pattern
 
@@ -161,9 +161,10 @@ public class MainActivity extends Activity {
 
   private String splitHttpData(String httpData) {
     String parsed = "";
+    httpData = httpData.replace("\\\"", "\"");
 
     try {
-      String[] parsedArray = httpData.split("<div class=\"ts3v\">");
+      String[] parsedArray = httpData.split("<div class=\"ts3v_" + ts3ViewerId + "\">");
       parsed = parsedArray[1];
       parsedArray = parsed.split("</div><style type=\"text/css\">");
       parsed = parsedArray[0];
@@ -225,7 +226,7 @@ public class MainActivity extends Activity {
     Server server = new Server();
 
     Element serverElement = div.getElementsByAttributeValueContaining("href", "ts3server://").first();
-    Element serverStatusImage = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/teamspeak3/standard/16x16_server").first();
+    Element serverStatusImage = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/ts3/viewer/server").first();
 
     server.setId(div.attr("id"));
     server.setAddress(serverElement.attr("href"));
@@ -240,10 +241,15 @@ public class MainActivity extends Activity {
   private Channel getChannelInfoFromDiv(Element div) {
     Channel channel = new Channel();
 
-    Element channelElement = div.getElementsByAttributeValueContaining("class", "ts3v_channel").first();
-    int treeLevel = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/teamspeak3/standard/16x16_tree").size();
-    Element channelStatusImage = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/teamspeak3/standard/16x16_channel").first();
-    Element channelFlagImage = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/teamspeak3/standard/16x16_channel_flag").first();
+    Element channelElement = div.getElementsByAttributeValueContaining("class", "ts3v_" + ts3ViewerId + "_channel").first();
+    int treeLevel = 0;
+    try {
+      treeLevel = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/ts3/viewer/tree").size() +
+      new Integer(div.attr("style").split("margin-left: ")[1].split("px")[0]) / 20;
+    } catch (ArrayIndexOutOfBoundsException e) {
+    }
+    Element channelStatusImage = div.getElementsByAttributeValueMatching("src", "http://static.tsviewer.com/images/ts3/viewer/channel(?!_flag)").first();
+    Element channelFlagImage = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/ts3/viewer/channel_flag").first();
 
     channel.setId(div.attr("id"));
     channel.setName(channelElement.text());
@@ -261,9 +267,13 @@ public class MainActivity extends Activity {
   private Client getClientInfoFromDiv(Element div) {
     Client client = new Client();
 
-    Element clientElement = div.getElementsByAttributeValueContaining("class", "ts3v_user").first();
-    int treeLevel = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/teamspeak3/standard/16x16_tree").size();
-    Element clientStatusImage = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/teamspeak3/standard/16x16_client").first();
+    Element clientElement = div.getElementsByAttributeValueContaining("class", "ts3v_" + ts3ViewerId + "_user").first();
+    int treeLevel = 0;
+    try {
+      treeLevel = new Integer(div.attr("style").split("margin-left: ")[1].split("px")[0]) / 20;
+    } catch (ArrayIndexOutOfBoundsException e) {
+    }
+    Element clientStatusImage = div.getElementsByAttributeValueContaining("src", "http://static.tsviewer.com/images/ts3/viewer/client").first();
     Element clientPrivilegeServerAdminImage = div.getElementsByAttributeValueContaining("title", "Server Admin").first();
     Element clientPrivilegeChannelAdminImage = div.getElementsByAttributeValueContaining("title", "Channel Admin").first();
 
